@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Miller's Law Experiment</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            background: white;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        button {
+            padding: 10px;
+            font-size: 16px;
+            background-color: green;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            background-color: darkgreen;
+        }
+        #sequence {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        input {
+            padding: 10px;
+            font-size: 16px;
+            width: 80%;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Miller's Law Experiment</h2>
+        <p>Memorize the sequence below and enter it correctly.</p>
+
+        <div id="sequence"></div>
+        <button onclick="startExperiment()">Start</button>
+        <br>
+        <input type="text" id="userInput" placeholder="Enter the sequence" />
+        <button onclick="checkAnswer()">Submit</button>
+        <p id="result"></p>
+    </div>
+
+    <script>
+        let sequence = "";
+        let difficulty = 5;
+
+        function generateSequence(length) {
+            const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            let generated = "";
+            for (let i = 0; i < length; i++) {
+                generated += characters.charAt(Math.floor(Math.random() * characters.length));
+            }
+            return generated;
+        }
+
+        function startExperiment() {
+            sequence = generateSequence(difficulty);
+            document.getElementById("sequence").textContent = sequence;
+
+            // Hide sequence after 3 seconds
+            setTimeout(() => {
+                document.getElementById("sequence").textContent = "Now enter what you remember!";
+            }, 3000);
+        }
+
+        function checkAnswer() {
+            let userAnswer = document.getElementById("userInput").value.toUpperCase();
+            if (userAnswer === sequence) {
+                document.getElementById("result").textContent = `✅ Correct! Try a harder sequence.`;
+                if (difficulty < 9) difficulty++; // Increase difficulty
+            } else {
+                document.getElementById("result").textContent = `❌ Incorrect! The correct sequence was ${sequence}. Try again.`;
+            }
+            document.getElementById("userInput").value = ""; // Clear input
+        }
+    </script>
+
+</body>
+</html>
