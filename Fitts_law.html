@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fitts' Law Experiment</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        #experimentContainer {
+            margin-top: 20px;
+        }
+        .target {
+            position: absolute;
+            background-color: blue;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        button {
+            margin-top: 10px;
+            padding: 10px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Fitts' Law Experiment</h2>
+    <p>Click the target as quickly as possible.</p>
+    <button onclick="startExperiment()">Start Experiment</button>
+    <div id="experimentContainer" style="position: relative; width: 800px; height: 500px; border: 1px solid black; margin: auto;"></div>
+    <p id="result"></p>
+    <h3>Previous Results:</h3>
+    <ul id="resultsList"></ul>
+<button onclick="goBack()" style="padding: 10px; font-size: 16px;">⬅ Back</button>
+
+<script>
+    function goBack() {
+        window.history.back();
+    }
+</script>
+    <script>
+        let startTime, endTime, results = [];
+        
+        function startExperiment() {
+            document.getElementById("experimentContainer").innerHTML = "";
+            document.getElementById("result").textContent = "Click the target!";
+            
+            let size = Math.random() < 0.5 ? 40 : 80; // Small or large target
+            let posX = Math.random() * (800 - size);
+            let posY = Math.random() * (500 - size);
+            
+            let target = document.createElement("div");
+            target.className = "target";
+            target.style.width = target.style.height = size + "px";
+            target.style.left = posX + "px";
+            target.style.top = posY + "px";
+            target.onclick = () => completeTask(size);
+            
+            document.getElementById("experimentContainer").appendChild(target);
+            startTime = performance.now();
+        }
+        
+        function completeTask(size) {
+            endTime = performance.now();
+            let timeTaken = ((endTime - startTime) / 1000).toFixed(2);
+            document.getElementById("result").textContent = `Target clicked in ${timeTaken} seconds!`;
+            storeResult(size, timeTaken);
+        }
+        
+        function storeResult(size, time) {
+            results.push(`Size ${size}px: ${time} seconds`);
+            updateResultsDisplay();
+        }
+        
+        function updateResultsDisplay() {
+            const resultsList = document.getElementById("resultsList");
+            resultsList.innerHTML = "";
+            results.forEach(result => {
+                let li = document.createElement("li");
+                li.textContent = result;
+                resultsList.appendChild(li);
+            });
+        }
+    </script>
+</body>
+</html>

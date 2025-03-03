@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hick's Law & Fitts' Law Experiment</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        #experimentContainer {
+            position: relative;
+            margin: 20px auto;
+            width: 800px;
+            height: 500px;
+            border: 2px solid black;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        button.choiceButton {
+            position: absolute;
+            font-size: 16px;
+            border-radius: 50%;
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Hick's & Fitts' Law Experiment</h2>
+    <p>You will be assigned a random button to click when the buttons appear.</p>
+    
+    <h3 id="taskMessage">Press a button below to start.</h3>
+
+    <div id="experimentContainer"></div>
+
+    <button onclick="startExperiment(2)">2 Choices</button>
+    <button onclick="startExperiment(4)">4 Choices</button>
+    <button onclick="startExperiment(8)">8 Choices</button>
+
+    <p id="result"></p>
+
+    <h3>Previous Results:</h3>
+    <ul id="resultsList"></ul>
+	
+	<button onclick="goBack()" style="padding: 10px; font-size: 16px;">⬅ Back</button>
+
+<script>
+    function goBack() {
+        window.history.back();
+    }
+</script>
+
+    <script>
+        let startTime, endTime;
+        let results = [];
+        let targetChoice;
+
+        function startExperiment(numChoices) {
+            document.getElementById('result').textContent = "Wait for the task...";
+            document.getElementById('experimentContainer').innerHTML = "";
+
+            // Randomly select the correct button to click
+            targetChoice = Math.floor(Math.random() * numChoices) + 1;
+            document.getElementById('taskMessage').textContent = `Click **Choice ${targetChoice}** when the buttons appear!`;
+
+            // Simulate delay before showing buttons
+            let delay = Math.random() * 2000 + 1000;
+            setTimeout(() => {
+                createButtons(numChoices);
+            }, delay);
+        }
+
+        function createButtons(numChoices) {
+            let experimentContainer = document.getElementById('experimentContainer');
+            let buttons = [];
+
+            for (let i = 1; i <= numChoices; i++) {
+                let button = document.createElement("button");
+                button.textContent = `Choice ${i}`;
+                button.classList.add("choiceButton");
+
+                // Assign random size (Fitts' Law)
+                let size = Math.random() * 50 + 30;  // Between 30px and 80px
+                button.style.width = `${size}px`;
+                button.style.height = `${size}px`;
+
+                // Assign random position
+                let xPos = Math.random() * (experimentContainer.clientWidth - size);
+                let yPos = Math.random() * (experimentContainer.clientHeight - size);
+                button.style.left = `${xPos}px`;
+                button.style.top = `${yPos}px`;
+
+                // Button click event
+                button.onclick = () => buttonClicked(i);
+
+                buttons.push(button);
+            }
+
+            // Shuffle buttons to randomize order
+            buttons.sort(() => Math.random() - 0.5);
+
+            // Add buttons to container
+            buttons.forEach(button => experimentContainer.appendChild(button));
+
+            // Record time when buttons appear
+            startTime = performance.now();
+        }
+
+        function buttonClicked(choice) {
+            endTime = performance.now();
+            let reactionTime = ((endTime - startTime) / 1000).toFixed(2);
+
+            if (choice === targetChoice) {
+                document.getElementById('result').textContent = `✅ Correct! You clicked in ${reactionTime} seconds.`;
+                storeResult(reactionTime);
+            } else {
+                document.getElementById('result').textContent = `❌ Wrong button! You clicked Choice ${choice}, but needed Choice ${targetChoice}. Try again.`;
+            }
+        }
+
+        function storeResult(time) {
+            results.push(`Choice ${targetChoice}: ${time} seconds`);
+            updateResultsDisplay();
+        }
+
+        function updateResultsDisplay() {
+            const resultsList = document.getElementById("resultsList");
+            resultsList.innerHTML = "";
+            results.forEach(result => {
+                let li = document.createElement("li");
+                li.textContent = result;
+                resultsList.appendChild(li);
+            });
+        }
+    </script>
+</body>
+</html>

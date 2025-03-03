@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steering Law Experiment</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        #canvasContainer {
+            position: relative;
+            margin: 20px auto;
+            border: 2px solid black;
+            width: 600px;
+            height: 400px;
+        }
+        canvas {
+            background-color: lightgray;
+        }
+        button {
+            margin-top: 10px;
+            padding: 10px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Accot–Zhai Steering Law Experiment</h2>
+    <p>Use your mouse to navigate from the start (green) to the end (red) without leaving the path.</p>
+    <div id="canvasContainer">
+        <canvas id="steeringCanvas" width="600" height="400"></canvas>
+    </div>
+    <button onclick="startExperiment('wide')">Wide Path</button>
+    <button onclick="startExperiment('narrow')">Narrow Path</button>
+    <button onclick="startExperiment('curved')">Curved Path</button>
+    <button onclick="startExperiment('thinCurved')">Thin Curved Path</button>
+    <button onclick="startExperiment('wideCurved')">Wide Curved Path</button>
+    <p id="result"></p>
+    <h3>Previous Results:</h3>
+    <ul id="resultsList"></ul>
+	<button onclick="goBack()" style="padding: 10px; font-size: 16px;">⬅ Back</button>
+
+<script>
+    function goBack() {
+        window.history.back();
+    }
+</script>
+
+    <script>
+        const canvas = document.getElementById("steeringCanvas");
+        const ctx = canvas.getContext("2d");
+        let startTime, endTime, isDrawing = false;
+        let pathType = "wide";
+        let results = [];
+        
+        function drawPath(type) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            let startX = 50, startY = 200, endX = 550, endY = 200;
+            let pathWidth = type === "narrow" ? 30 : type === "thinCurved" ? 40 : type === "wideCurved" ? 120 : 80;
+
+            ctx.fillStyle = "white";
+            if (type === "curved" || type === "thinCurved" || type === "wideCurved") {
+                let curveControl1X = 200, curveControl1Y = 100, curveControl2X = 400, curveControl2Y = 300;
+                if (type === "wideCurved") {
+                    curveControl1X = 150;
+                    curveControl1Y = 50;
+                    curveControl2X = 450;
+                    curveControl2Y = 350;
+                }
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                ctx.bezierCurveTo(curveControl1X, curveControl1Y, curveControl2X, curveControl2Y, endX, endY);
+                ctx.lineWidth = pathWidth;
+                ctx.strokeStyle = "white";
+                ctx.stroke();
+            } else {
+                ctx.fillRect(startX, startY - pathWidth / 2, endX - startX, pathWidth);
+            }
+
+            ctx.fillStyle = "green";
+            ctx.fillRect(startX - 10, startY - 10, 20, 20);
+            ctx.fillStyle = "red";
+            ctx.fillRect(endX - 10, endY - 10, 20, 20);
+        }
+        
+        function startExperiment(type) {
+            pathType = type;
+            drawPath(type);
+            document.getElementById("result").textContent = "Steer through the path!";
+            isDrawing = false;
+            canvas.addEventListener("mousedown", startTracking);
+            canvas.addEventListener("mousemove", trackMouse);
+            canvas.addEventListener("mouseup", stopTracking);
+        }
+        
+        function startTracking(event) {
+            let { offsetX, offsetY } = event;
+            if (offsetX >= 40 && offsetX <= 60 && offsetY >= 190 && offsetY <= 210) {
+                isDrawing = true;
+                startTime = performance.now();
+            }
+        }
+        
+        function trackMouse(event) {
+            if (!isDrawing) return;
+            let { offsetX, offsetY } = event;
+            let pathWidth = pathType === "narrow" ? 30 : pathType === "thinCurved" ? 40 : pathType === "wideCurved" ? 120 : 80;
+            let startY = 200;
+            
+            if (pathType === "curved" || pathType === "thinCurved" || pathType === "wideCurved") {
+                let curveY = bezierPoint(offsetX, 50, 200, 400, 550, 200, 100, 300, 200);
+                if (Math.abs(offsetY - curveY) > pathWidth / 2) {
+                    isDrawing = false;
+                    document.getElementById("result").textContent = "You left the path! Try again.";
+                }
+            } else {
+                if (offsetY < startY - pathWidth / 2 || offsetY > startY + pathWidth / 2) {
+                    isDrawing = false;
+                    document.getElementById("result").textContent = "You left the path! Try again.";
+                }
+            }
+
+            if (offsetX >= 540 && offsetX <= 560 && offsetY >= 190 && offsetY <= 210) {
+                isDrawing = false;
+                endTime = performance.now();
+                let timeTaken = ((endTime - startTime) / 1000).toFixed(2);
+                document.getElementById("result").textContent = `Completed in ${timeTaken} seconds!`;
+                storeResult(pathType, timeTaken);
+            }
+        }
+        
+        function stopTracking() {
+            isDrawing = false;
+        }
+        
+        function bezierPoint(x, x0, x1, x2, x3, y0, y1, y2, y3) {
+            let t = (x - x0) / (x3 - x0);
+            return (1 - t) ** 3 * y0 + 3 * (1 - t) ** 2 * t * y1 + 3 * (1 - t) * t ** 2 * y2 + t ** 3 * y3;
+        }
+        
+        function storeResult(type, time) {
+            results.push(`${type}: ${time} seconds`);
+            updateResultsDisplay();
+        }
+        
+        function updateResultsDisplay() {
+            const resultsList = document.getElementById("resultsList");
+            resultsList.innerHTML = "";
+            results.forEach(result => {
+                let li = document.createElement("li");
+                li.textContent = result;
+                resultsList.appendChild(li);
+            });
+        }
+        
+        drawPath("wide");
+    </script>
+</body>
+</html>
