@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Combined Law Experiment</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        #experimentArea {
+            position: relative;
+            width: 600px;
+            height: 400px;
+            margin: 20px auto;
+            border: 2px solid black;
+            background-color: lightgray;
+        }
+        .circle {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: white;
+            background-color: green;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        button {
+            margin-top: 10px;
+            padding: 10px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Combined Miller's, Fitts', and Hicks' Law Experiment</h2>
+    <p>Memorize the sequence and select the correct green circle when options appear.</p>
+    <div id="sequence"></div>
+    <button onclick="startExperiment()">Start Experiment</button>
+    <button onclick="window.history.back()">Back</button>
+    <div id="experimentArea"></div>
+    <p id="result"></p>
+
+    <script>
+        let targetSequence = "";
+        let optionsCount = 4; // Number of circles
+
+        function generateSequence(length) {
+            const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            let sequence = "";
+            for (let i = 0; i < length; i++) {
+                sequence += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return sequence;
+        }
+
+        function chunkSequence(sequence, chunkSize) {
+            let chunks = [];
+            for (let i = 0; i < sequence.length; i += chunkSize) {
+                chunks.push(sequence.slice(i, i + chunkSize));
+            }
+            return chunks.join(" - ");
+        }
+
+        function startExperiment() {
+            targetSequence = generateSequence(6);
+            document.getElementById("sequence").textContent = "Memorize: " + chunkSequence(targetSequence, 2 + Math.floor(Math.random() * 2));
+            
+            setTimeout(() => {
+                document.getElementById("sequence").textContent = "(Sequence hidden)";
+                displayOptions();
+            }, 5000); // Hide sequence after 5 seconds
+        }
+
+        function displayOptions() {
+            const area = document.getElementById("experimentArea");
+            area.innerHTML = ""; // Clear previous circles
+            
+            let correctIndex = Math.floor(Math.random() * optionsCount);
+            
+            for (let i = 0; i < optionsCount; i++) {
+                let circle = document.createElement("div");
+                let size = 50 + Math.random() * 100; // Random size (Fitts' Law)
+                circle.classList.add("circle");
+                circle.style.width = size + "px";
+                circle.style.height = size + "px";
+                circle.style.left = Math.random() * (600 - size) + "px";
+                circle.style.top = Math.random() * (400 - size) + "px";
+                
+                let sequence = i === correctIndex ? targetSequence : generateSequence(6);
+                circle.textContent = chunkSequence(sequence, 2 + Math.floor(Math.random() * 2));
+                
+                circle.onclick = () => checkSelection(sequence);
+                area.appendChild(circle);
+            }
+        }
+
+        function checkSelection(selectedSequence) {
+            if (selectedSequence === targetSequence) {
+                document.getElementById("result").textContent = "Correct! You selected the right option.";
+            } else {
+                document.getElementById("result").textContent = "Incorrect. Try again.";
+            }
+        }
+    </script>
+</body>
+</html>
