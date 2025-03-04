@@ -8,92 +8,60 @@
         body {
             font-family: Arial, sans-serif;
             text-align: center;
-            margin: 0;
-            padding: 20px;
-            background-color: #f4f4f4;
-        }
-        .container {
-            max-width: 600px;
-            margin: auto;
-            padding: 20px;
-            background: white;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-        }
-        button {
-            padding: 10px;
-            font-size: 16px;
-            background-color: green;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin: 10px;
-        }
-        button:hover {
-            background-color: darkgreen;
+            margin: 50px;
         }
         #sequence {
             font-size: 24px;
-            font-weight: bold;
-            margin: 20px 0;
+            margin: 20px;
         }
-        input {
+        button {
+            margin: 10px;
             padding: 10px;
             font-size: 16px;
-            width: 80%;
-            margin: 10px 0;
         }
     </style>
 </head>
 <body>
-
-    <div class="container">
-        <h2>Miller's Law Experiment</h2>
-        <p>Memorize the sequence below and enter it correctly.</p>
-
-        <div id="sequence"></div>
-        <button onclick="startExperiment()">Start</button>
-        <br>
-        <input type="text" id="userInput" placeholder="Enter the sequence" />
-        <button onclick="checkAnswer()">Submit</button>
-        <p id="result"></p>
-    </div>
+    <h2>Miller's Law Experiment</h2>
+    <p>Try to remember the following sequence:</p>
+    <div id="sequence"></div>
+    <button onclick="startExperiment()">Generate New Sequence</button>
+    <button onclick="checkRecall()">Recall</button>
+    <button onclick="window.history.back()">Back</button>
+    <p id="result"></p>
 
     <script>
-        let sequence = "";
-        let difficulty = 5;
-
+        let originalSequence = "";
+        
         function generateSequence(length) {
-            const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-            let generated = "";
+            const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            let sequence = "";
             for (let i = 0; i < length; i++) {
-                generated += characters.charAt(Math.floor(Math.random() * characters.length));
+                sequence += chars.charAt(Math.floor(Math.random() * chars.length));
             }
-            return generated;
+            return sequence;
         }
-
+        
+        function chunkSequence(sequence, chunkSize) {
+            let chunks = [];
+            for (let i = 0; i < sequence.length; i += chunkSize) {
+                chunks.push(sequence.slice(i, i + chunkSize));
+            }
+            return chunks.join(" - ");
+        }
+        
         function startExperiment() {
-            sequence = generateSequence(difficulty);
-            document.getElementById("sequence").textContent = sequence;
-
-            // Hide sequence after 3 seconds
+            originalSequence = generateSequence(9); // 9 characters
+            document.getElementById("sequence").textContent = chunkSequence(originalSequence, 2 + Math.floor(Math.random() * 2)); // Chunks of 2 or 3
             setTimeout(() => {
-                document.getElementById("sequence").textContent = "Now enter what you remember!";
-            }, 3000);
+                document.getElementById("sequence").textContent = "(Sequence hidden)";
+            }, 5000); // Hide after 5 seconds
         }
-
-        function checkAnswer() {
-            let userAnswer = document.getElementById("userInput").value.toUpperCase();
-            if (userAnswer === sequence) {
-                document.getElementById("result").textContent = `✅ Correct! Try a harder sequence.`;
-                if (difficulty < 9) difficulty++; // Increase difficulty
-            } else {
-                document.getElementById("result").textContent = `❌ Incorrect! The correct sequence was ${sequence}. Try again.`;
-            }
-            document.getElementById("userInput").value = ""; // Clear input
+        
+        function checkRecall() {
+            let userInput = prompt("Enter the sequence you remember:");
+            document.getElementById("result").textContent = userInput === originalSequence ? "Correct!" : "Incorrect. The correct sequence was: " + originalSequence;
         }
     </script>
-
 </body>
 </html>
