@@ -3,97 +3,151 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Miller's Law Experiment</title>
+    <title>Fitts + Hick + Miller Experiment</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
-            margin: 0;
-            padding: 20px;
-            background-color: #f4f4f4;
         }
-        .container {
-            max-width: 600px;
+        #experimentContainer {
+            position: relative;
+            width: 800px;
+            height: 500px;
+            border: 1px solid black;
             margin: auto;
-            padding: 20px;
-            background: white;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
+        }
+        .target {
+            position: absolute;
+            background-color: blue;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .choice {
+            display: inline-block;
+            padding: 10px;
+            margin: 5px;
+            border: 2px solid black;
+            cursor: pointer;
+            background-color: lightgray;
         }
         button {
+            margin-top: 10px;
             padding: 10px;
             font-size: 16px;
-            background-color: green;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin: 10px;
-        }
-        button:hover {
-            background-color: darkgreen;
-        }
-        #sequence {
-            font-size: 24px;
-            font-weight: bold;
-            margin: 20px 0;
-        }
-        input {
-            padding: 10px;
-            font-size: 16px;
-            width: 80%;
-            margin: 10px 0;
         }
     </style>
 </head>
 <body>
-
-    <div class="container">
-        <h2>Miller's Law Experiment</h2>
-        <p>Memorize the sequence below and enter it correctly.</p>
-
-        <div id="sequence"></div>
-        <button onclick="startExperiment()">Start</button>
-        <br>
-        <input type="text" id="userInput" placeholder="Enter the sequence" />
-        <button onclick="checkAnswer()">Submit</button>
-        <p id="result"></p>
-    </div>
+    <h2>Fitts + Hick + Miller Experiment</h2>
+    <p>Follow the instructions below.</p>
+    <button onclick="startExperiment()">Start Experiment</button>
+    <button onclick="goBack()">Back</button>
+    <div id="experimentContainer"></div>
+    <p id="instructions"></p>
+    <h3>Previous Results:</h3>
+    <ul id="resultsList"></ul>
 
     <script>
-        let sequence = "";
-        let difficulty = 5;
-
-        function generateSequence(length) {
-            const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-            let generated = "";
-            for (let i = 0; i < length; i++) {
-                generated += characters.charAt(Math.floor(Math.random() * characters.length));
-            }
-            return generated;
-        }
-
+        let startTime, endTime, memorySequence = [], userSequence = [], results = [];
+        
         function startExperiment() {
-            sequence = generateSequence(difficulty);
-            document.getElementById("sequence").textContent = sequence;
-
-            // Hide sequence after 3 seconds
-            setTimeout(() => {
-                document.getElementById("sequence").textContent = "Now enter what you remember!";
-            }, 3000);
+            document.getElementById("experimentContainer").innerHTML = "";
+            document.getElementById("instructions").textContent = "Memorize the sequence of numbers!";
+            
+            generateMemoryTask();
         }
-
-        function checkAnswer() {
-            let userAnswer = document.getElementById("userInput").value.toUpperCase();
-            if (userAnswer === sequence) {
-                document.getElementById("result").textContent = `✅ Correct! Try a harder sequence.`;
-                if (difficulty < 9) difficulty++; // Increase difficulty
-            } else {
-                document.getElementById("result").textContent = `❌ Incorrect! The correct sequence was ${sequence}. Try again.`;
+        
+        function generateMemoryTask() {
+            memorySequence = Array.from({length: Math.floor(Math.random() * 4) + 3}, () => Math.floor(Math.random() * 10));
+            let chunkedSequence = chunkSequence(memorySequence);
+            alert("Memorize this sequence: " + chunkedSequence.join("  "));
+            setTimeout(() => {
+                document.getElementById("experimentContainer").innerHTML = "";
+                userSequence = [];
+                generateChoiceTask();
+            }, 2000);
+        }
+        
+        function chunkSequence(sequence) {
+            let chunks = [];
+            for (let i = 0; i < sequence.length; i += Math.random() < 0.5 ? 2 : 3) {
+                chunks.push(sequence.slice(i, i + (Math.random() < 0.5 ? 2 : 3)).join(""));
             }
-            document.getElementById("userInput").value = ""; // Clear input
+            return chunks;
+        }
+        
+        function generateChoiceTask() {
+            document.getElementById("instructions").textContent = "Select the numbers in the correct order.";
+            let choices = [...new Set(memorySequence.concat(Array.from({length: 6}, () => Math.floor(Math.random() * 10))))].sort(() => Math.random() - 0.5);
+            choices.forEach(num => {
+                let choice = document.createElement("div");
+                choice.className = "choice";
+                choice.textContent = num;
+                choice.onclick = () => handleChoice(num);
+                document.getElementById("experimentContainer").appendChild(choice);
+            });
+            
+            let backButton = document.createElement("button");
+            backButton.textContent = "Back";
+            backButton.onclick = goBack;
+            document.getElementById("experimentContainer").appendChild(backButton);
+        }
+        
+        function handleChoice(num) {
+            userSequence.push(num);
+            if (userSequence.length === memorySequence.length) {
+                if (JSON.stringify(userSequence) === JSON.stringify(memorySequence)) {
+                    document.getElementById("instructions").textContent = "Correct! Now click the target.";
+                    setTimeout(generateFittsTask, 1000);
+                } else {
+                    document.getElementById("instructions").textContent = "Incorrect sequence! Restarting...";
+                    setTimeout(startExperiment, 2000);
+                }
+            }
+        }
+        
+        function generateFittsTask() {
+            document.getElementById("experimentContainer").innerHTML = "";
+            let size = Math.random() < 0.5 ? 40 : 80;
+            let posX = Math.random() * (800 - size);
+            let posY = Math.random() * (500 - size);
+            
+            let target = document.createElement("div");
+            target.className = "target";
+            target.style.width = target.style.height = size + "px";
+            target.style.left = posX + "px";
+            target.style.top = posY + "px";
+            target.onclick = () => completeTask(size);
+            
+            document.getElementById("experimentContainer").appendChild(target);
+            startTime = performance.now();
+        }
+        
+        function completeTask(size) {
+            endTime = performance.now();
+            let timeTaken = ((endTime - startTime) / 1000).toFixed(2);
+            document.getElementById("instructions").textContent = `Task completed in ${timeTaken} seconds!`;
+            storeResult(size, timeTaken);
+        }
+        
+        function storeResult(size, time) {
+            results.push(`Memory + Choice + Fitts (Size ${size}px): ${time} seconds`);
+            updateResultsDisplay();
+        }
+        
+        function updateResultsDisplay() {
+            const resultsList = document.getElementById("resultsList");
+            resultsList.innerHTML = "";
+            results.forEach(result => {
+                let li = document.createElement("li");
+                li.textContent = result;
+                resultsList.appendChild(li);
+            });
+        }
+        
+        function goBack() {
+            window.history.back();
         }
     </script>
-
 </body>
 </html>
