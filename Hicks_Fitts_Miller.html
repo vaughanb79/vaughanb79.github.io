@@ -41,6 +41,7 @@
     <h2>Fitts + Hick + Miller Experiment</h2>
     <p>Follow the instructions below.</p>
     <button onclick="startExperiment()">Start Experiment</button>
+    <button onclick="goBack()">Back</button>
     <div id="experimentContainer"></div>
     <p id="instructions"></p>
     <h3>Previous Results:</h3>
@@ -58,12 +59,21 @@
         
         function generateMemoryTask() {
             memorySequence = Array.from({length: Math.floor(Math.random() * 4) + 3}, () => Math.floor(Math.random() * 10));
-            alert("Memorize this sequence: " + memorySequence.join(" "));
+            let chunkedSequence = chunkSequence(memorySequence);
+            alert("Memorize this sequence: " + chunkedSequence.join("  "));
             setTimeout(() => {
                 document.getElementById("experimentContainer").innerHTML = "";
                 userSequence = [];
                 generateChoiceTask();
             }, 2000);
+        }
+        
+        function chunkSequence(sequence) {
+            let chunks = [];
+            for (let i = 0; i < sequence.length; i += Math.random() < 0.5 ? 2 : 3) {
+                chunks.push(sequence.slice(i, i + (Math.random() < 0.5 ? 2 : 3)).join(""));
+            }
+            return chunks;
         }
         
         function generateChoiceTask() {
@@ -128,6 +138,10 @@
                 li.textContent = result;
                 resultsList.appendChild(li);
             });
+        }
+        
+        function goBack() {
+            window.history.back();
         }
     </script>
 </body>
